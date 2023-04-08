@@ -99,7 +99,10 @@ export const ProfileScreen = ({ navigation }) => {
                                             <Text
                                                 style={styles.textLocation}
                                                 onPress={() =>
-                                                    navigation.navigate("Map")
+                                                    navigation.navigate("Map", {
+                                                        latitude: item.location.latitude,
+                                                        longitude: item.location.longitude,
+                                                    })
                                                 }
                                             >
                                                 {item.position.split(",")[1]}
