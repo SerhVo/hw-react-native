@@ -5,10 +5,13 @@ import { createStackNavigator } from "@react-navigation/stack";
 import RegistrationScreen from "./screens/RegistrationScreen";
 import LoginScreen from "./screens/LoginScreen";
 import { Home } from "./screens/Home";
+import { store } from "./redux/store";
+import { currentUser } from "./redux/auth/authoperations";
 import { CommentsScreen } from "./screens/CommentsScreen";
 import { MapScreen } from "./screens/MapScreen";
 import { StyleSheet } from "react-native";
 import { AppLoading } from 'expo';
+import { Provider, useDispatch, useSelector } from 'react-redux';
 
 
 
@@ -22,7 +25,14 @@ const customFonts = async () => {
 const Stack = createStackNavigator();
 
 export default function App() {
+
+    const dispatch = useDispatch();
+    const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
     const [isReady, setIsReady] = useState(false);
+
+    useEffect(() => {
+        dispatch(currentUser());
+    }, [isLoggedIn]);
 
     useEffect(() => {
         customFonts().then(() => setIsReady(true));
@@ -34,47 +44,56 @@ export default function App() {
 
 
     return (
-        <NavigationContainer>
-            <Stack.Navigator initialRouteName="Home">
-                <Stack.Screen
-                    name="Registration"
-                    component={RegistrationScreen}
-                    options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                    name="Login"
-                    component={LoginScreen}
-                    options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                    name="Home"
-                    component={Home}
-                    options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                    name="Comments"
-                    component={CommentsScreen}
-                    options={{
-                        headerStyle: styles.headerBox,
-                        headerPressColor: "#FF6C00",
-                        headerTitleStyle: styles.headerTitle,
-                        headerTitleAlign: "center",
-                        title: "Comments",
-                    }}
-                />
-                <Stack.Screen
-                    name="Map"
-                    component={MapScreen}
-                    options={{
-                        headerStyle: styles.headerBox,
-                        headerPressColor: "#FF6C00",
-                        headerTitleStyle: styles.headerTitle,
-                        headerTitleAlign: "center",
-                        title: "Map",
-                    }}
-                />
-            </Stack.Navigator>
-        </NavigationContainer>
+        <Provider store={store}>
+            <NavigationContainer>
+                <Stack.Navigator initialRouteName="Home">
+                    {!isLoggedIn ? (
+                        <>
+                            <Stack.Screen
+                                name="Registration"
+                                component={RegistrationScreen}
+                                options={{ headerShown: false }}
+                            />
+                            <Stack.Screen
+                                name="Login"
+                                component={LoginScreen}
+                                options={{ headerShown: false }}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <Stack.Screen
+                                name="Home"
+                                component={Home}
+                                options={{ headerShown: false }}
+                            />
+                            <Stack.Screen
+                                name="Comments"
+                                component={CommentsScreen}
+                                options={{
+                                    headerStyle: styles.headerBox,
+                                    headerPressColor: "#FF6C00",
+                                    headerTitleStyle: styles.headerTitle,
+                                    headerTitleAlign: "center",
+                                    title: "Comments",
+                                }}
+                            />
+                            <Stack.Screen
+                                name="Map"
+                                component={MapScreen}
+                                options={{
+                                    headerStyle: styles.headerBox,
+                                    headerPressColor: "#FF6C00",
+                                    headerTitleStyle: styles.headerTitle,
+                                    headerTitleAlign: "center",
+                                    title: "Map",
+                                }}
+                            />
+                        </>
+                    )}
+                </Stack.Navigator>
+            </NavigationContainer>
+        </Provider>
     );
 };
 const styles = StyleSheet.create({

@@ -1,119 +1,155 @@
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
     StyleSheet,
     Text,
     View,
     Image,
     FlatList,
-
+    TouchableWithoutFeedback,
+    KeyboardAvoidingView,
     TextInput,
     Pressable,
     Keyboard,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-
+import { addComments, getComments } from "../redux/dashboard/dbOperations";
 
 export const CommentsScreen = ({ route }) => {
+    const { postId, image } = route.params;
+    const dispatch = useDispatch();
+    const userId = useSelector((state) => state.auth.user.uid);
+    const userAvatar = useSelector((state) => state.auth.user.avatar);
+    const [disabled, setDisabled] = useState(true);
+    const [text, setText] = useState("");
+    const [isShowKeyboard, setIsShowKeyboard] = useState(false);
+    const [comments, setComments] = useState([]);
 
-    setText("");
-    handleKeyboard();
-};
+    const addComment = () => {
+        const date = new Date().toLocaleDateString();
+        const time = new Date().toLocaleTimeString();
+        const commentData = {
+            timestamp: Date.now().toString(),
+            text,
+            userId: userId,
+            postId: postId,
+            date,
+            time,
+            avatar: userAvatar,
+        };
+        dispatch(addComments({ postId, commentData: commentData }));
+        setText("");
+        handleKeyboard();
+    };
 
-const handleKeyboard = () => {
-    Keyboard.dismiss();
-    setIsShowKeyboard(false);
-};
+    const handleKeyboard = () => {
+        Keyboard.dismiss();
+        setIsShowKeyboard(false);
+    };
 
+    useEffect(() => {
+        if (postId && setComments) {
+            dispatch(getComments({ postId: postId, setComments: setComments }));
+        }
+    }, [postId, setComments]);
 
+    useEffect(() => {
+        if (text) {
+            setDisabled(false);
+        } else {
+            setDisabled(true);
+        }
+    }, [text]);
 
-const textHandler = (text) => {
-    setText(text);
-};
+    const textHandler = (text) => {
+        setText(text);
+    };
 
-return (
-    <TouchableWithoutFeedback onPress={handleKeyboard}>
-        <View style={{ ...styles.container }}>
-            <KeyboardAvoidingView
-                behavior={Platform.OS == "ios" ? "padding" : "height"}
-            >
-                <View style={styles.imageWrapper}>
-                    <Image style={styles.postImage} source={{ uri: image }} />
-                </View>
-                <View
-                    style={{
-                        ...styles.postsList,
-                        marginBottom: isShowKeyboard ? -250 : 0,
-                    }}
+    return (
+        <TouchableWithoutFeedback onPress={handleKeyboard}>
+            <View style={{ ...styles.container }}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS == "ios" ? "padding" : "height"}
                 >
-                    <FlatList
-                        data={comments}
-                        renderItem={({ item }) => (
-                            <View
-                                style={{
-                                    ...styles.commentBox,
-                                    flexDirection:
-                                        item.userId === userId ? "row" : "row-reverse",
-                                }}
-                            >
-                                <View style={styles.commentTextWrapper}>
-                                    <Text style={styles.commentText}>{item.text}</Text>
-                                    <Text style={styles.commentDate}>
-                                        {item.date} | {item.time}
-                                    </Text>
-                                </View>
-                                <View style={styles.commentAvatar}>
-                                    {image ? (
-                                        <Image
-                                            style={styles.commentAvatar}
-
-                                        />
-                                    ) : null}
-                                </View>
-                            </View>
-                        )}
-
-                    />
+                    <View style={styles.imageWrapper}>
+                        <Image style={styles.postImage} source={{ uri: image }} />
+                    </View>
                     <View
                         style={{
-                            ...styles.commentInputWrapper,
+                            ...styles.postsList,
+                            marginBottom: isShowKeyboard ? -250 : 0,
                         }}
                     >
-                        <TextInput
-                            style={
-                                text
-                                    ? { ...styles.commentInput, color: "#212121" }
-                                    : styles.commentInput
-                            }
-                            value={text}
-                            multiline
-                            autoFocus={false}
-                            selectionColor="#FF6C00"
-                            blurOnSubmit={true}
-                            placeholderTextColor="#BDBDBD"
-                            onChangeText={textHandler}
-                            onFocus={() => {
-                                setIsShowKeyboard(true);
-                            }}
-                            onBlur={() => {
-                                setIsShowKeyboard(false);
-                            }}
-                            placeholder="Comment..."
-                        ></TextInput>
-                        <Pressable
+                        <FlatList
+                            data={comments}
+                            renderItem={({ item }) => (
+                                <View
+                                    style={{
+                                        ...styles.commentBox,
+                                        flexDirection:
+                                            item.userId === userId ? "row" : "row-reverse",
+                                    }}
+                                >
+                                    <View style={styles.commentTextWrapper}>
+                                        <Text style={styles.commentText}>{item.text}</Text>
+                                        <Text style={styles.commentDate}>
+                                            {item.date} | {item.time}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.commentAvatar}>
+                                        {image ? (
+                                            <Image
+                                                style={styles.commentAvatar}
+                                                source={{ uri: item.avatar }}
+                                            />
+                                        ) : null}
+                                    </View>
+                                </View>
+                            )}
+                            keyExtractor={(item) => item.commentId}
+                        />
+                        <View
                             style={{
-                                ...styles.addCommentBtn,
-                                opacity: disabled ? 0.5 : 1,
+                                ...styles.commentInputWrapper,
                             }}
-                            onPress={addComment}
-                            disabled={disabled}
                         >
-                            <AntDesign name="arrowup" size={20} color="#ffffff" />
-                        </Pressable>
+                            <TextInput
+                                style={
+                                    text
+                                        ? { ...styles.commentInput, color: "#212121" }
+                                        : styles.commentInput
+                                }
+                                value={text}
+                                multiline
+                                autoFocus={false}
+                                selectionColor="#FF6C00"
+                                blurOnSubmit={true}
+                                placeholderTextColor="#BDBDBD"
+                                onChangeText={textHandler}
+                                onFocus={() => {
+                                    setIsShowKeyboard(true);
+                                }}
+                                onBlur={() => {
+                                    setIsShowKeyboard(false);
+                                }}
+                                placeholder="Comment..."
+                            ></TextInput>
+                            <Pressable
+                                style={{
+                                    ...styles.addCommentBtn,
+                                    opacity: disabled ? 0.5 : 1,
+                                }}
+                                onPress={addComment}
+                                disabled={disabled}
+                            >
+                                <AntDesign name="arrowup" size={20} color="#ffffff" />
+                            </Pressable>
+                        </View>
                     </View>
-                </View>
-            </KeyboardAvoidingView>
-        </View>
-    </TouchableWithoutFeedback>
-);
+                </KeyboardAvoidingView>
+            </View>
+        </TouchableWithoutFeedback>
+    );
 };
 
 const styles = StyleSheet.create({
