@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { useDispatch } from "react-redux";
 import {
     StyleSheet,
     Text,
@@ -11,12 +11,17 @@ import {
     Platform,
     TouchableWithoutFeedback,
     Keyboard,
+    Image,
     ImageBackground,
     Alert,
 } from "react-native";
-
+import { imageUploader } from "../../utils/imageUploader";
+import { register } from "../../redux/auth/authoperations";
+import { AntDesign } from '@expo/vector-icons';
 
 const initialState = {
+    image: "",
+    login: "",
     email: "",
     password: "",
 };
@@ -24,8 +29,10 @@ const initialState = {
 const deviceHeight = Dimensions.get("window").height;
 const deviceWidth = Dimensions.get("window").width;
 
-const LoginScreen = ({ navigation }) => {
-    const [isShowKeyboard, setIsShowKeyboard] = useState(false);    
+const RegistrationScreen = ({ navigation }) => {
+    const [isShowKeyboard, setIsShowKeyboard] = useState(false);
+    const [state, setState] = useState(initialState);
+    const [showPassword, setShowPassword] = useState(true);
     const [isFocused, setIsFocused] = useState("");
     const dispatch = useDispatch();
 
@@ -45,10 +52,13 @@ const LoginScreen = ({ navigation }) => {
     };
 
     const onSubmitForm = () => {
-        if (!state.email || !state.password) {
-            return Alert.alert("not all fields filled!");
+        if (!state.email || !state.login || !state.password) {
+            return Alert.alert("Fill in all the fields");
         }
-        
+
+        dispatch(register(state));
+        setIsShowKeyboard(false);
+        setState(initialState);
     };
 
     return (
@@ -56,7 +66,7 @@ const LoginScreen = ({ navigation }) => {
             <TouchableWithoutFeedback onPress={keyboardHide}>
                 <ImageBackground
                     style={styles.image}
-                    source={require("../assets/images/BG_main.jpg")}
+                    source={require("../../assets/images/BG_main.jpg")}
                 >
                     <KeyboardAvoidingView
                         behavior={Platform.OS == "ios" ? "padding" : "height"}
@@ -64,11 +74,47 @@ const LoginScreen = ({ navigation }) => {
                         <View
                             style={{
                                 ...styles.container,
-                                marginBottom: isShowKeyboard ? -220 : 0,
+                                marginBottom: isShowKeyboard ? -150 : 0,
                             }}
                         >
                             <View style={styles.form}>
-                                <Text style={styles.formTitle}>Login</Text>
+                                <View style={styles.containerForAvatar}>
+                                    {state.image ? (
+                                        <Image
+                                            style={styles.avatar}
+                                            source={{ uri: state.image }}
+                                        />
+                                    ) : <Text style={styles.avatarNo}>
+                                            
+                                        </Text>}
+                                    <Pressable
+                                        style={styles.addImageBtn}
+                                        onPress={() => imageUploader(setState, setIsShowKeyboard)}
+                                    >
+                                        {state.image ? (
+                                            <AntDesign name="closecircleo" size={25} color="#BDBDBD" />
+                                        ) : (
+                                            <AntDesign style={styles.addIcon} name="pluscircleo" size={25} color="#FF6C00" />
+                                        )}
+                                    </Pressable>
+                                </View>
+                                <Text style={styles.formTitle}>Sign up</Text>
+                                <View style={{ marginBottom: 16 }}>
+                                    <TextInput
+                                        style={{
+                                            ...styles.input,
+                                            borderColor:
+                                                isFocused === "login" ? "#FF6C00" : "#E8E8E8",
+                                        }}
+                                        onBlur={handleBlur}
+                                        onFocus={() => handleFocus("login")}
+                                        value={state.login}
+                                        placeholder="Login"
+                                        onChangeText={(value) =>
+                                            setState((prevState) => ({ ...prevState, login: value }))
+                                        }
+                                    />
+                                </View>
                                 <View style={{ marginBottom: 16 }}>
                                     <TextInput
                                         style={{
@@ -120,12 +166,10 @@ const LoginScreen = ({ navigation }) => {
                                 </View>
 
                                 <Pressable style={styles.formBtn} onPress={onSubmitForm}>
-                                    <Text style={styles.formBtnText}>Login</Text>
+                                    <Text style={styles.formBtnText}>Sign up</Text>
                                 </Pressable>
-                                <Pressable onPress={() => navigation.navigate("Registration")}>
-                                    <Text style={styles.formText}>
-                                        Don't have an account? Sign in
-                                    </Text>
+                                <Pressable onPress={() => navigation.navigate("Login")}>
+                                    <Text style={styles.formText}>Already have an account? Sign in</Text>
                                 </Pressable>
                             </View>
                         </View>
@@ -143,7 +187,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 25,
         borderTopRightRadius: 25,
         marginTop: "auto",
-        paddingBottom: 111,
+        paddingBottom: 45,
     },
     form: {},
     formTitle: {
@@ -151,7 +195,7 @@ const styles = StyleSheet.create({
         fontSize: 30,
         lineHeight: 35,
         color: "#212121",
-        marginTop: 32,
+        marginTop: 92,
         marginBottom: 32,
         textAlign: "center",
     },
@@ -163,7 +207,6 @@ const styles = StyleSheet.create({
         height: 50,
         backgroundColor: "#F6F6F6",
         borderWidth: 1,
-        borderColor: "#E8E8E8",
         borderRadius: 8,
         padding: 16,
     },
@@ -188,6 +231,46 @@ const styles = StyleSheet.create({
         textAlign: "center",
         color: "#1B4371",
     },
+    containerForAvatar: {
+        position: "absolute",
+        top: -60,
+        left: "33%",
+        width: 120,
+        height: 120,
+        backgroundColor: "#F6F6F6",
+        marginLeft: "auto",
+        marginRight: "auto",
+        borderRadius: 15,
+    },
+    avatarNo: {
+        borderRadius: 50,
+        width: 120,
+        height: 120,
+        backgroundColor: "#BDBDBD",
+        fontFamily: "Roboto-Regular",
+        fontSize: 13,
+        color: "#000",
+    },
+    imageAdd: {
+        width: 25,
+        height: 25,
+    },
+    addImageBtn: {
+        position: "absolute",
+        bottom: 14,
+        right: -12,
+    },
+    avatar: {
+        borderRadius: 16,
+        width: 120,
+        height: 120,
+    },
+    avatarNo: {
+        borderRadius: 16,
+        width: 120,
+        height: 120,
+        backgroundColor: "#F6F6F6",
+    },
     passwordIndicator: {
         position: "absolute",
         top: 15,
@@ -204,4 +287,5 @@ const styles = StyleSheet.create({
         justifyContent: "flex-end",
     },
 });
-export default LoginScreen;
+
+export default RegistrationScreen;

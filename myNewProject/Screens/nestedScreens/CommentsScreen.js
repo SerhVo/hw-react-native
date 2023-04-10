@@ -13,7 +13,7 @@ import {
     Keyboard,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import { addComments, getComments } from "../redux/dashboard/dbOperations";
+import { addComments, getComments } from "../../redux/dashboard/dbOperations";
 
 export const CommentsScreen = ({ route }) => {
     const { postId, image } = route.params;
@@ -97,12 +97,15 @@ export const CommentsScreen = ({ route }) => {
                                         </Text>
                                     </View>
                                     <View style={styles.commentAvatar}>
-                                        {image ? (
+                                        {item.avatar ? (
                                             <Image
                                                 style={styles.commentAvatar}
                                                 source={{ uri: item.avatar }}
                                             />
-                                        ) : null}
+                                        ) : 
+                                        <Text style={styles.avatarNo}>
+                                            
+                                        </Text>}
                                     </View>
                                 </View>
                             )}
@@ -132,7 +135,7 @@ export const CommentsScreen = ({ route }) => {
                                 onBlur={() => {
                                     setIsShowKeyboard(false);
                                 }}
-                                placeholder="Comment..."
+                                placeholder="To comment..."
                             ></TextInput>
                             <Pressable
                                 style={{
@@ -205,6 +208,16 @@ const styles = StyleSheet.create({
         width: 28,
         height: 28,
         backgroundColor: "#BDBDBD",
+    },
+    avatarNo: {
+        borderRadius: 16,
+        width: 28,
+        height: 28,
+        backgroundColor: "#BDBDBD",
+        fontFamily: "Roboto-Regular",
+        fontSize: 7,
+        color: "#000",
+        paddingTop: 9,
     },
     commentInputWrapper: {
         position: "relative",

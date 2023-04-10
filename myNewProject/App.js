@@ -1,52 +1,59 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 import * as Font from "expo-font";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import RegistrationScreen from "./screens/RegistrationScreen";
-import LoginScreen from "./screens/LoginScreen";
-import { Home } from "./screens/Home";
+import RegistrationScreen from "./Screens/authSreens/RegistrationScreen";
+import LoginScreen from "./Screens/authSreens/LoginScreen";
+import { Home } from "./Screens/mainScreen/Home";
+import { Provider, useDispatch, useSelector } from "react-redux";
 import { store } from "./redux/store";
 import { currentUser } from "./redux/auth/authoperations";
-import { CommentsScreen } from "./screens/CommentsScreen";
-import { MapScreen } from "./screens/MapScreen";
+import { CommentsScreen } from "./Screens/nestedScreens/CommentsScreen";
+import { MapScreen } from "./Screens/nestedScreens/MapScreen";
 import { StyleSheet } from "react-native";
-import { AppLoading } from 'expo';
-import { Provider, useDispatch, useSelector } from 'react-redux';
 
-
-
-const customFonts = async () => {
-    await Font.loadAsync({
-        "Roboto-Regular": require("./assets/fonts/Roboto-Regular.ttf"),
-        "Roboto-Medium": require("./assets/fonts/Roboto-Medium.ttf"),
-    });
+const customFonts = {
+    "Roboto-Regular": require("./assets/fonts/Roboto-Regular.ttf"),
+    "Roboto-Medium": require("./assets/fonts/Roboto-Medium.ttf"),
 };
 
 const Stack = createStackNavigator();
 
-export default function App() {
+export default () => {
+    const [fontsLoaded, setFontsLoaded] = useState(false);
 
+    useEffect(() => {
+        async function loadFontsAsync() {
+            await Font.loadAsync(customFonts);
+            setFontsLoaded(true);
+        }
+
+        loadFontsAsync();
+    }, []);
+    if (!fontsLoaded) {
+        return null;
+    }
+    return (
+        <Provider store={store}>
+            <App />
+        </Provider>
+    );
+};
+
+
+
+const App = () => {
     const dispatch = useDispatch();
     const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
-    const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {
         dispatch(currentUser());
     }, [isLoggedIn]);
 
-    useEffect(() => {
-        customFonts().then(() => setIsReady(true));
-    }, []);
-
-    if (!isReady) {
-        return <AppLoading />;
-    }
-
-
     return (
         <Provider store={store}>
             <NavigationContainer>
-                <Stack.Navigator initialRouteName="Home">
+                <Stack.Navigator initialRouteName="Registration">
                     {!isLoggedIn ? (
                         <>
                             <Stack.Screen
